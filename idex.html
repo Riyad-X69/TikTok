@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biometric Cyber Security Portal - @orekix69x</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+        }
+
+        body {
+            background-color: #050508;
+            color: #00ffcc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Matrix Canvas Background */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Lock Screen Container */
+        #lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(5, 5, 8, 0.82);
+            backdrop-filter: blur(8px);
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+
+        .cyber-header {
+            font-size: 1.3rem;
+            color: #00ff66;
+            text-shadow: 0 0 10px #00ff66;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            text-align: center;
+            padding: 0 15px;
+            text-transform: uppercase;
+        }
+
+        /* Scanner Box */
+        .scanner-card {
+            position: relative;
+            width: 170px;
+            height: 170px;
+            border-radius: 24px;
+            background: rgba(10, 15, 25, 0.9);
+            border: 2px solid #00ff66;
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.25), inset 0 0 15px rgba(0, 255, 102, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+            transition: all 0.3s ease;
+        }
+
+        .scanner-card:active {
+            transform: scale(0.96);
+        }
+
+        .fingerprint-svg {
+            width: 110px;
+            height: 110px;
+            fill: none;
+            stroke: #00ff66;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0.75;
+            transition: all 0.3s;
+            filter: drop-shadow(0 0 4px #00ff66);
+        }
+
+        .laser-line {
+            position: absolute;
+            top: 0;
+            left: 5%;
+            width: 90%;
+            height: 4px;
+            background: #00ffcc;
+            box-shadow: 0 0 12px #00ffcc, 0 0 25px #00ffcc;
+            border-radius: 2px;
+            display: none;
+            z-index: 15;
+        }
+
+        .scanning .laser-line {
+            display: block;
+            animation: scanAnim 1.2s infinite alternate ease-in-out;
+        }
+
+        .scanning .fingerprint-svg {
+            opacity: 1;
+            stroke: #00ffcc;
+            filter: drop-shadow(0 0 12px #00ffcc);
+        }
+
+        .scanning {
+            border-color: #00ffcc !important;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.6), inset 0 0 20px rgba(0, 255, 204, 0.4) !important;
+        }
+
+        .error-state {
+            border-color: #ff0055 !important;
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.6), inset 0 0 20px rgba(255, 0, 85, 0.4) !important;
+        }
+
+        .error-state .fingerprint-svg {
+            stroke: #ff0055 !important;
+            filter: drop-shadow(0 0 10px #ff0055) !important;
+        }
+
+        @keyframes scanAnim {
+            0% { top: 10%; }
+            100% { top: 85%; }
+        }
+
+        .status-msg {
+            margin-top: 30px;
+            font-size: 1.1rem;
+            color: #00ff66;
+            text-shadow: 0 0 8px rgba(0, 255, 102, 0.5);
+            font-weight: 600;
+            letter-spacing: 1px;
+            height: 25px;
+            text-align: center;
+        }
+
+        /* Main Content View */
+        #main-content {
+            display: none;
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            padding: 20px 10px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .profile-header {
+            width: 100%;
+            padding: 15px;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid #00ffcc;
+            border-radius: 16px;
+            color: #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .profile-header h2 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .profile-link {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 8px 18px;
+            background: linear-gradient(45deg, #ff0050, #00f2fe);
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            box-shadow: 0 0 10px rgba(255, 0, 80, 0.4);
+        }
+
+        /* Video List Styling */
+        .video-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 30px;
+            align-items: center;
+        }
+
+        .video-card {
+            width: 100%;
+            height: 520px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #00ffcc;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.15);
+        }
+
+        .video-card iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .unlocked {
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Matrix Background Rain -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- Biometric Lock Interface -->
+    <div id="lock-screen">
+        <div class="cyber-header">[ SYSTEM LOCKED ]<br><span style="font-size: 0.85rem; color: #888;">HOLD FINGERPRINT TO UNLOCK</span></div>
+        
+        <div class="scanner-card" id="scanner">
+            <div class="laser-line"></div>
+            
+            <svg class="fingerprint-svg" viewBox="0 0 100 100">
+                <path d="M 50 15 A 35 35 0 0 1 85 50 A 35 35 0 0 1 82 65" />
+                <path d="M 50 22 A 28 28 0 0 1 78 50 A 28 28 0 0 1 73 73" />
+                <path d="M 50 29 A 21 21 0 0 1 71 50 A 21 21 0 0 1 65 77" />
+                <path d="M 50 36 A 14 14 0 0 1 64 50 A 14 14 0 0 1 58 72" />
+                <path d="M 50 43 A 7 7 0 0 1 57 50 A 7 7 0 0 1 52 65" />
+                <path d="M 50 50 A 1 1 0 0 1 50 51" />
+                <path d="M 18 62 A 35 35 0 0 1 50 15" />
+                <path d="M 23 70 A 28 28 0 0 1 50 22" />
+                <path d="M 30 76 A 21 21 0 0 1 50 29" />
+                <path d="M 38 80 A 14 14 0 0 1 50 36" />
+                <path d="M 44 83 A 7 7 0 0 1 50 43" />
+                <path d="M 25 40 A 35 35 0 0 0 15 50 A 35 35 0 0 0 28 78" />
+                <path d="M 31 43 A 28 28 0 0 0 22 50 A 28 28 0 0 0 34 82" />
+                <path d="M 37 45 A 21 21 0 0 0 29 50 A 21 21 0 0 0 40 85" />
+                <path d="M 68 83 A 35 35 0 0 0 85 50" />
+                <path d="M 62 86 A 28 28 0 0 0 78 50" />
+            </svg>
+        </div>
+
+        <div class="status-msg" id="status-msg">Touch & Hold Fingerprint</div>
+    </div>
+
+    <!-- Main Content Container (@orekix69x Feed) -->
+    <div id="main-content">
+        <div class="profile-header">
+            <h2>🔥 @orekix69x TikTok Videos</h2>
+            <a href="https://www.tiktok.com/@orekix69x" target="_blank" class="profile-link">
+                Follow On TikTok ↗
+            </a>
+        </div>
+
+        <!-- Working Video Embeds -->
+        <div class="video-list">
+            
+            <div class="video-card">
+                <iframe src="https://www.tiktok.com/player/v1/7667541315923561749?autoplay=0" allow="fullscreen"></iframe>
+            </div>
+
+            <div class="video-card">
+                <iframe src="https://www.tiktok.com/player/v1/7667541315923561749?autoplay=0" allow="fullscreen"></iframe>
+            </div>
+
+            <div class="video-card">
+                <iframe src="https://www.tiktok.com/player/v1/7667541315923561749?autoplay=0" allow="fullscreen"></iframe>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        /* Matrix Background */
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const chars = '0110010101010101010101010101010101010100101010101010101010010101010';
+        const fontSize = 14;
+        const columns = Math.floor(canvas.width / fontSize);
+        const drops = Array(columns).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(5, 5, 8, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                ctx.fillStyle = Math.random() > 0.85 ? '#ff0055' : '#00ff66';
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 35);
+
+        /* Audio Controls */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playBeepSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function playUnlockSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc1.type = 'sine';
+            osc2.type = 'triangle';
+            osc1.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc1.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.3);
+            osc2.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc2.frequency.exponentialRampToValueAtTime(2400, audioCtx.currentTime + 0.3);
+
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc1.start();
+            osc2.start();
+            osc1.stop(audioCtx.currentTime + 0.4);
+            osc2.stop(audioCtx.currentTime + 0.4);
+        }
+
+        function playErrorSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+        }
+
+        /* Lock Screen Events */
+        const scanner = document.getElementById('scanner');
+        const statusMsg = document.getElementById('status-msg');
+        const lockScreen = document.getElementById('lock-screen');
+        const mainContent = document.getElementById('main-content');
+
+        let scanTimer;
+        let beepInterval;
+
+        function startScan() {
+            scanner.classList.add('scanning');
+            scanner.classList.remove('error-state');
+            statusMsg.innerText = 'Scanning Biometric... Hold Finger';
+            statusMsg.style.color = '#00ffcc';
+
+            playBeepSound();
+            beepInterval = setInterval(playBeepSound, 250);
+
+            scanTimer = setTimeout(() => {
+                clearInterval(beepInterval);
+                playUnlockSound();
+
+                statusMsg.innerText = 'ACCESS GRANTED! UNLOCKING...';
+                statusMsg.style.color = '#00ff66';
+
+                setTimeout(() => {
+                    lockScreen.classList.add('unlocked');
+                    mainContent.style.display = 'flex';
+                }, 600);
+
+            }, 2200);
+        }
+
+        function cancelScan() {
+            clearTimeout(scanTimer);
+            clearInterval(beepInterval);
+
+            if (!lockScreen.classList.contains('unlocked')) {
+                scanner.classList.remove('scanning');
+                scanner.classList.add('error-state');
+                playErrorSound();
+
+                statusMsg.innerText = 'ACCESS DENIED! Scan Incomplete';
+                statusMsg.style.color = '#ff0055';
+
+                setTimeout(() => {
+                    scanner.classList.remove('error-state');
+                    statusMsg.innerText = 'Touch & Hold Fingerprint';
+                    statusMsg.style.color = '#00ff66';
+                }, 1200);
+            }
+        }
+
+        scanner.addEventListener('mousedown', startScan);
+        scanner.addEventListener('mouseup', cancelScan);
+        scanner.addEventListener('mouseleave', cancelScan);
+
+        scanner.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startScan();
+        });
+        scanner.addEventListener('touchend', cancelScan);
+    </script>
+</body>
+</html>
